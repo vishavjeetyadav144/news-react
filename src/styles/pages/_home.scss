@@ -1,0 +1,157 @@
+/* Hero Section */
+.hero-section {
+  padding: 3rem 0;
+  background: linear-gradient(135deg, #e0f2ff 0%, #f5faff 100%);
+  border-radius: 12px;
+  margin-bottom: 3rem;
+}
+
+.hero-stats {
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  padding: 0 1rem;
+}
+
+.stat-item h3 {
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+/* Featured Section */
+.section-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* Article Cards */
+.news-card {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.article-title {
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.article-title a:hover {
+  color: #1a8917 !important;
+}
+
+.article-excerpt {
+  flex-grow: 1;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.article-meta {
+  font-size: 0.875rem;
+}
+
+.article-topics .badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+
+/* News Summary Preview */
+.news-summary-preview {
+  background: #f0f9f0;
+  padding: 1rem;
+  border-radius: 6px;
+  border-left: 3px solid #1a8917;
+  margin-bottom: 1rem;
+}
+
+.news-summary-preview .text-info {
+  color: #1a8917 !important;
+}
+
+.news-summary-preview p {
+  color: #424242;
+  line-height: 1.5;
+  margin-bottom: 0;
+}
+
+.prelims-preview {
+  background: #fff8e1;
+  padding: 1rem;
+  border-radius: 6px;
+  border-left: 3px solid #f57c00;
+}
+
+.article-footer {
+  margin-top: auto;
+  padding-top: 1rem;
+}
+
+/* Empty State */
+.empty-state {
+  background: #fff;
+  border-radius: 12px;
+  padding: 4rem 2rem;
+  border: 1px solid #e6e6e6;
+}
+
+.empty-icon {
+  opacity: 0.5;
+}
+
+/* How It Works */
+.how-it-works-section {
+  background: #fff;
+  padding: 3rem 2rem;
+  border-radius: 12px;
+  border: 1px solid #e6e6e6;
+}
+
+.step-icon {
+  width: 80px;
+  height: 80px;
+  background: #f8fff8;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  border: 2px solid #e8f5e8;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 2rem 1rem;
+  }
+  
+  .hero-stats {
+    gap: 1rem !important;
+  }
+  
+  .stat-item {
+    padding: 0 0.5rem;
+  }
+  
+  .stat-item h3 {
+    font-size: 1.5rem;
+  }
+  
+  .hero-actions .btn {
+    display: block;
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+  
+  .hero-actions .btn:last-child {
+    margin-bottom: 0;
+  }
+  
+  .how-it-works-section {
+    padding: 2rem 1rem;
+  }
+}
