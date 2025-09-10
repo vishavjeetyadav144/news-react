@@ -46,7 +46,13 @@ const NewsList = () => {
         
         setNewsArticles(data.news_articles || []);
         setTotalArticles(data.total_articles || 0);
-        setAllTopics(data.all_topics || []);
+        setAllTopics(data.filters.all_topics || []);
+        setSearchQuery(data.filters.applied_filters.search)
+        setTopicFilter(data.filters.applied_filters.topic)
+        setReadStatus(data.filters.applied_filters.read_status)
+        setDateTo(data.filters.applied_filters.date_to)
+        setTagFilter(data.filters.applied_filters.tag)
+        setDateFrom(data.filters.applied_filters.date_from)
         
       } catch (err) {
         console.error('Error fetching news data:', err);
