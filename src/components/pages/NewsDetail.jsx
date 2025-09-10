@@ -224,8 +224,8 @@ const NewsDetail = () => {
         showNotification('Article deleted successfully', 'success');
         // Navigate back to news list after successful deletion
         setTimeout(() => {
-          navigate('/news');
-        }, 1500);
+          navigate(`/news/${nextArticle.id}`);
+        }, 500);
       } else {
         showNotification(response.message || 'Error deleting article', 'error');
       }
