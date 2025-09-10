@@ -170,15 +170,51 @@ const NewsList = () => {
     setSelectedArticles(newSelected);
   };
 
-  const toggleReadStatus = (articleId) => {
-    setNewsArticles(articles => 
-      articles.map(article => 
-        article.id === articleId 
-          ? { ...article, is_read: !article.is_read }
-          : article
-      )
-    );
+  const toggleReadStatus = async (articleId) => {
+
+    try {
+      const response = await newsAPI.toggleReadStatus(articleId);
+
+      if (response.success) {
+
+        setNewsArticles(articles => 
+          articles.map(article => 
+            article.id === articleId 
+              ? { ...article, is_read: !article.is_read }
+              : article
+          )
+        );
+        showNotification(response.message, 'success');
+      } else {
+        showNotification(response.message || 'Error updating read status', 'error');
+      }
+    } catch (err) {
+      console.error('Error toggling read status:', err);
+      // Fallback to local update
+      showNotification('Article not marked (offline)', 'warning');
+    }
   };
+
+  const deleteArticle = async (articleId) => {
+
+    try {
+      const response = await newsAPI.deleteArticle(articleId);
+
+      if (response.success) {
+
+        setNewsArticles(articles => 
+          articles.filter(article => article.id !== articleId)
+        );
+
+        showNotification(response.message, 'success');
+      } else {
+        showNotification(response.message || 'Error deleting article', 'error');
+      }
+    } catch (err) {
+      // Fallback to local update
+      showNotification('Error deleting article (offline)', 'warning');
+    }
+  }
 
   const formatDate = (dateString) => {
     if (!dateString) return '';
@@ -478,6 +514,7 @@ const NewsList = () => {
                 <button 
                   className="btn btn-sm btn-outline-danger btn-action"
                   title="Delete Article"
+                  onClick={() => deleteArticle(article.id)}
                 >
                   <i className="fas fa-trash"></i>
                 </button>

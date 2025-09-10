@@ -216,9 +216,6 @@ const NewsDetail = () => {
   };
 
   const deleteArticle = async () => {
-    if (!window.confirm('Are you sure you want to delete this article? This action cannot be undone.')) {
-      return;
-    }
 
     try {
       const response = await newsAPI.deleteArticle(article.id);
