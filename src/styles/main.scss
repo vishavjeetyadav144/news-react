@@ -1179,6 +1179,7 @@ footer {
   font-size: 1.125rem;
   line-height: 1.7;
   color: #242424;
+  word-break: break-word;
 }
 
 .news-summary p {
@@ -1195,6 +1196,7 @@ footer {
   padding: 2rem;
   border-radius: 8px;
   border-left: 4px solid #f57c00;
+  word-break: break-word;
 }
 
 /* Sidebar */
@@ -1587,6 +1589,10 @@ footer {
   .drawer-body {
     padding: 1.5rem;
   }
+
+  .news-summary{
+    padding: 1.5rem;
+  }
 }
 
 @media (max-width: 576px) {
@@ -1609,6 +1615,18 @@ footer {
   }
   
   .drawer-body .related-article-card {
+    padding: 1rem;
+  }
+
+  .news-summary{
+    padding: 1rem;
+  }
+
+  .prelims-content{
+    padding: 1rem;
+  }
+
+  .article-content{
     padding: 1rem;
   }
 }
