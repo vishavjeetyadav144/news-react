@@ -363,11 +363,11 @@ const NewsList = () => {
               {totalArticles} articles available for UPSC preparation
             </p>
           </div>
-          <div className="header-actions">
+          {/* <div className="header-actions">
             <Link to="/upload" className="btn btn-primary">
               <i className="fas fa-plus me-2"></i>Add More
             </Link>
-          </div>
+          </div> */}
         </div>
         
         {/* Search and Filters */}
