@@ -1,0 +1,275 @@
+// Authentication pages styling - matching main app design
+.auth-container {
+  min-height: 100vh;
+  background: #fafafa;
+  display: flex;
+  align-items: center;
+  padding: 2rem 0;
+  
+  .container {
+    max-width: 1200px;
+  }
+  
+  .card {
+    background: #fff;
+    border: 1px solid #e6e6e6;
+    border-radius: 8px;
+    box-shadow: none;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+      transform: translateY(-2px);
+      border-color: #d6d6d6;
+    }
+    
+    .card-body {
+      padding: 3rem 2.5rem;
+    }
+    
+    .card-title {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-weight: 700;
+      font-size: 2rem;
+      color: #1a1a1a;
+      margin-bottom: 2rem;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+  }
+  
+  .form-label {
+    font-weight: 500;
+    color: #1a1a1a;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+  }
+  
+  .form-control {
+    border: 1px solid #e6e6e6;
+    border-radius: 8px;
+    padding: 0.875rem 1rem;
+    font-size: 1rem;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #fafafa;
+    transition: all 0.2s ease;
+    
+    &:focus {
+      border-color: #1a8917;
+      box-shadow: 0 0 0 0.2rem rgba(26, 137, 23, 0.1);
+      background: #fff;
+      outline: none;
+    }
+    
+    &.is-invalid {
+      border-color: #dc3545;
+      background: #fff5f5;
+    }
+    
+    &::placeholder {
+      color: #6b6b6b;
+    }
+  }
+  
+  .btn-primary {
+    background: #1a8917;
+    border: none;
+    border-radius: 24px;
+    padding: 0.875rem 2rem;
+    font-weight: 500;
+    font-size: 1rem;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background: #156d13;
+      transform: none;
+    }
+    
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+  }
+  
+  .btn-outline-danger {
+    border: 1px solid #e6e6e6;
+    color: #1a1a1a;
+    background: #fff;
+    border-radius: 24px;
+    padding: 0.875rem 2rem;
+    font-weight: 500;
+    font-size: 1rem;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background: #f2f2f2;
+      border-color: #d6d6d6;
+      color: #1a1a1a;
+      transform: none;
+    }
+    
+    .fab.fa-google {
+      color: #db4437;
+    }
+  }
+  
+  .alert {
+    border: none;
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    margin-bottom: 2rem;
+    
+    &.alert-danger {
+      background: #ffebee;
+      color: #d32f2f;
+    }
+    
+    &.alert-success {
+      background: #f0f9f0;
+      color: #1a8917;
+    }
+  }
+  
+  .invalid-feedback {
+    font-size: 0.875rem;
+    color: #dc3545;
+    margin-top: 0.25rem;
+  }
+  
+  .form-text {
+    font-size: 0.875rem;
+    color: #6b6b6b;
+    margin-top: 0.25rem;
+  }
+  
+  a {
+    color: #1a8917;
+    text-decoration: none;
+    font-weight: 500;
+    
+    &:hover {
+      color: #156d13;
+      text-decoration: underline;
+    }
+  }
+  
+  .text-muted {
+    color: #6b6b6b !important;
+    font-size: 1rem;
+  }
+  
+  // Auth page specific hero section
+  .auth-hero {
+    text-align: center;
+    margin-bottom: 3rem;
+    
+    h1 {
+      font-size: 3rem;
+      font-weight: 800;
+      color: #1a1a1a;
+      margin-bottom: 1rem;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+    
+    p {
+      font-size: 1.25rem;
+      color: #6b6b6b;
+      margin-bottom: 0;
+      line-height: 1.6;
+    }
+  }
+  
+  // Divider styling
+  .text-center {
+    .text-muted {
+      position: relative;
+      
+      &::before,
+      &::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        width: 45%;
+        height: 1px;
+        background: #e6e6e6;
+      }
+      
+      &::before {
+        left: 0;
+      }
+      
+      &::after {
+        right: 0;
+      }
+    }
+  }
+}
+
+// Loading spinner
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.125em;
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .auth-container {
+    padding: 1rem 0;
+    
+    .card {
+      margin: 0 1rem;
+      
+      .card-body {
+        padding: 2rem 1.5rem;
+      }
+      
+      .card-title {
+        font-size: 1.75rem;
+      }
+    }
+    
+    .auth-hero {
+      margin-bottom: 2rem;
+      
+      h1 {
+        font-size: 2.25rem;
+      }
+      
+      p {
+        font-size: 1.125rem;
+      }
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .auth-container {
+    .card {
+      margin: 0 0.5rem;
+      
+      .card-body {
+        padding: 1.5rem 1rem;
+      }
+      
+      .card-title {
+        font-size: 1.5rem;
+      }
+    }
+    
+    .auth-hero {
+      h1 {
+        font-size: 2rem;
+      }
+      
+      p {
+        font-size: 1rem;
+      }
+    }
+  }
+}

@@ -13,6 +13,12 @@ const NewsList = () => {
   const [allTopics, setAllTopics] = useState([]);
   const [error, setError] = useState(null);
   
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page')) || 1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [hasNext, setHasNext] = useState(false);
+  const [hasPrevious, setHasPrevious] = useState(false);
+  
   // Filter states
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [tagFilter, setTagFilter] = useState(searchParams.get('tag') || '');
@@ -37,6 +43,7 @@ const NewsList = () => {
         if (dateTo) params.date_to = dateTo;
         if (readStatus) params.read_status = readStatus;
         if (perPage !== 6) params.per_page = perPage;
+        if (currentPage !== 1) params.page = currentPage;
         
         // Fetch data from Django backend
         const response = await newsAPI.getNews(params);
@@ -53,6 +60,20 @@ const NewsList = () => {
         setDateTo(data.filters.applied_filters.date_to)
         setTagFilter(data.filters.applied_filters.tag)
         setDateFrom(data.filters.applied_filters.date_from)
+        
+        // Set pagination data
+        if (data.pagination) {
+          setCurrentPage(data.pagination.current_page || 1);
+          setTotalPages(data.pagination.total_pages || 1);
+          setHasNext(data.pagination.has_next || false);
+          setHasPrevious(data.pagination.has_previous || false);
+        } else {
+          // Calculate pagination from total articles and per page
+          const calculatedTotalPages = Math.ceil((data.total_articles || 0) / perPage);
+          setTotalPages(calculatedTotalPages);
+          setHasNext(currentPage < calculatedTotalPages);
+          setHasPrevious(currentPage > 1);
+        }
         
       } catch (err) {
         console.error('Error fetching news data:', err);
@@ -98,7 +119,7 @@ const NewsList = () => {
     };
 
     fetchNewsData();
-  }, [searchQuery, tagFilter, topicFilter, dateFrom, dateTo, readStatus, perPage]);
+  }, [searchQuery, tagFilter, topicFilter, dateFrom, dateTo, readStatus, perPage, currentPage]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -266,6 +287,59 @@ const NewsList = () => {
 
   const splitTags = (tags) => {
     return tags;
+  };
+
+  // Pagination functions
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    const params = new URLSearchParams(searchParams);
+    if (page !== 1) {
+      params.set('page', page.toString());
+    } else {
+      params.delete('page');
+    }
+    setSearchParams(params);
+    
+    // Scroll to top when page changes
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const goToFirstPage = () => handlePageChange(1);
+  const goToLastPage = () => handlePageChange(totalPages);
+  const goToPreviousPage = () => handlePageChange(currentPage - 1);
+  const goToNextPage = () => handlePageChange(currentPage + 1);
+
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisiblePages = 5;
+    
+    if (totalPages <= maxVisiblePages) {
+      // Show all pages if total is small
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Show smart pagination
+      const startPage = Math.max(1, currentPage - 2);
+      const endPage = Math.min(totalPages, currentPage + 2);
+      
+      if (startPage > 1) {
+        pages.push(1);
+        if (startPage > 2) pages.push('...');
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+      
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+    
+    return pages;
   };
 
   if (loading) {
