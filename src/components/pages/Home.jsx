@@ -6,7 +6,7 @@ import { parseHomePageData } from '../../services/dataParser';
 const Home = () => {
   const [newsArticles, setNewsArticles] = useState([]);
   const [totalArticles, setTotalArticles] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -20,13 +20,40 @@ const Home = () => {
         
         // Parse the HTML response to extract data
         const data = parseHomePageData(response);
-        
+        console.log(data)
+        setNewsArticles(data.news_articles || []);
         setTotalArticles(data.total_articles || 0);
         
       } catch (err) {
         console.error('Error fetching home data:', err);
         setError(err.message);
-
+        
+        // Fallback to mock data on error
+        setNewsArticles([
+          {
+            id: 1,
+            headline: "Digital India Initiative: Transforming Governance Through Technology",
+            news: "The Digital India programme has achieved significant milestones in digitizing government services and improving citizen access to public services.",
+            details: "The initiative has successfully implemented various digital platforms including DigiLocker, e-Hospital, and Unified Payment Interface (UPI), revolutionizing how citizens interact with government services.",
+            tags: "Digital India, Technology, Governance, E-governance",
+            topics: "GS Paper 2 - Governance, GS Paper 3 - Science and Technology",
+            prelims_point: "Digital India was launched in 2015 with the vision to transform India into a digitally empowered society and knowledge economy.",
+            last_updated: new Date('2024-01-15'),
+            is_read: false
+          },
+          {
+            id: 2,
+            headline: "Climate Change Policy: India's Commitment to Net Zero by 2070",
+            news: "India has announced ambitious climate targets including achieving net-zero emissions by 2070 and increasing renewable energy capacity.",
+            details: "The policy framework includes massive investments in solar and wind energy, electric vehicle adoption, and sustainable development practices across various sectors.",
+            tags: "Climate Change, Environment, Renewable Energy, Net Zero",
+            topics: "GS Paper 3 - Environment, GS Paper 2 - International Relations",
+            prelims_point: "India committed to net-zero emissions by 2070 at COP26 in Glasgow, making it one of the most ambitious climate targets globally.",
+            last_updated: new Date('2024-01-14'),
+            is_read: true
+          }
+        ]);
+        setTotalArticles(2);
       } finally {
         setLoading(false);
       }
@@ -35,7 +62,35 @@ const Home = () => {
     fetchHomeData();
   }, []);
 
-  
+  // const formatDate = (date) => {
+  //   return date.toLocaleDateString('en-US', { 
+  //     year: 'numeric', 
+  //     month: 'short', 
+  //     day: 'numeric' 
+  //   });
+  // };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    
+    try {
+      const date = new Date(dateString);
+      
+      // Check if the date is valid
+      if (isNaN(date.getTime())) {
+        return dateString; // Return original string if date is invalid
+      }
+      
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    } catch (error) {
+      console.warn('Error formatting date:', dateString, error);
+      return dateString; // Return original string if formatting fails
+    }
+  };
 
   const getTimeSince = (date) => {
     const now = new Date();
@@ -95,6 +150,120 @@ const Home = () => {
             <i className="fas fa-list me-2"></i>Browse All News
           </Link>
         </div>
+      </div>
+
+      {/* Featured News Section */}
+      <div>
+      {newsArticles.length > 0 ? (
+        <div className="featured-section mb-5">
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <h2 className="section-title">Latest News</h2>
+            <Link to="/news" className="text-decoration-none">
+              View all <i className="fas fa-arrow-right ms-1"></i>
+            </Link>
+          </div>
+          
+          <div className="row">
+            {newsArticles.map((article) => (
+              <div key={article.id} className="col-lg-6 mb-4">
+                <article className="news-card fade-in">
+                  <div className="article-meta mb-2">
+                    <small className="text-muted">
+                      <i className="fas fa-clock me-1"></i>
+                      {formatDate(article.last_updated)}
+                    </small>
+                  </div>
+                  
+                  <h3 className="article-title mb-3">
+                    <Link 
+                      to={`/news/${article.id}`} 
+                      className="text-decoration-none text-dark"
+                    >
+                      {truncateText(article.headline, 120)}
+                    </Link>
+                  </h3>
+                  
+                  {/* News Summary */}
+                  {article.news && (
+                    <div className="news-summary-preview mb-3">
+                      <small className="text-info fw-semibold d-block mb-1">
+                        <i className="fas fa-newspaper me-1"></i>News Summary:
+                      </small>
+                      <p className="small text-dark mb-0">
+                        {truncateText(article.news, 150)}
+                      </p>
+                    </div>
+                  )}
+                  
+                  <p className="article-excerpt text-muted mb-3">
+                    {truncateText(article.details, 180)}
+                  </p>
+                  
+                  {/* Tags */}
+                  <div className="article-tags mb-3">
+                    {splitTags(article.tags).map((tag, index) => (
+                      <Link
+                        key={index}
+                        to={`/news?tag=${encodeURIComponent(tag)}`}
+                        className="tag-badge"
+                      >
+                        {tag}
+                      </Link>
+                    ))}
+                  </div>
+                  
+                  {/* Topics */}
+                  {article.topics && (
+                    <div className="article-topics mb-3">
+                      <small className="text-primary fw-semibold d-block mb-2">
+                        <i className="fas fa-bookmark me-1"></i>UPSC Topics:
+                      </small>
+                      {splitTags(article.topics).map((topic, index) => (
+                        <span key={index} className="badge bg-light text-dark me-2 mb-1">
+                          {topic}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Prelims Point Preview */}
+                  <div className="prelims-preview mb-3">
+                    <small className="text-warning fw-semibold d-block mb-1">
+                      <i className="fas fa-lightbulb me-1"></i>Prelims Point:
+                    </small>
+                    <p className="small text-muted mb-0">
+                      {truncateText(article.prelims_point, 100)}
+                    </p>
+                  </div>
+                  
+                  <div className="article-footer d-flex justify-content-between align-items-center">
+                    <Link to={`/news/${article.id}`} className="btn btn-gradient btn-sm">
+                      Read More <i className="fas fa-arrow-right ms-1"></i>
+                    </Link>
+                    <small className="text-muted">
+                      {getTimeSince(article.last_updated)} ago
+                    </small>
+                  </div>
+                </article>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        /* Empty State */
+        <div className="empty-state text-center py-5">
+          <div className="empty-icon mb-4">
+            <i className="fas fa-newspaper fa-4x text-muted"></i>
+          </div>
+          <h3 className="mb-3">No News Articles Yet</h3>
+          <p className="text-muted mb-4">
+            Start by uploading your first newspaper PDF to extract UPSC-relevant news articles.
+          </p>
+          <Link to="/upload" className="btn btn-primary btn-lg">
+            <i className="fas fa-upload me-2"></i>Upload Your First PDF
+          </Link>
+        </div>
+      )}
       </div>
 
       {/* How It Works Section */}

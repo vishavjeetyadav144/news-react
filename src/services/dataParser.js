@@ -10,7 +10,7 @@ export const parseHomePageData = (jsonResponse) => {
   }
 
   return {
-    news_articles: jsonResponse.articles || [],
+    news_articles: jsonResponse.news_articles || [],
     total_articles: jsonResponse.total_articles || 0
   };
 };
