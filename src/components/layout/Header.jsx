@@ -53,9 +53,9 @@ const Header = () => {
           <span className="text-dark">UPSC</span>
           <span className="text-success">News</span>
         </Link>
-        <button 
-          className="navbar-toggler" 
-          type="button" 
+        <button
+          className="navbar-toggler"
+          type="button"
           onClick={toggleMobileMenu}
           aria-controls="navbarNav"
           aria-expanded={mobileMenuOpen}
@@ -66,8 +66,8 @@ const Header = () => {
         <div className={`navbar-collapse ${mobileMenuOpen ? 'show' : 'collapse'}`} id="navbarNav">
           <ul className="navbar-nav me-auto ms-lg-4">
             <li className="nav-item">
-              <Link 
-                className={`nav-link fw-medium px-3 py-2 rounded-pill ${isActive('/') ? 'active bg-light text-success' : 'text-dark'}`} 
+              <Link
+                className={`nav-link fw-medium px-3 py-2 rounded-pill ${isActive('/') ? 'active bg-light text-success' : 'text-dark'}`}
                 to="/"
               >
                 <i className="fas fa-home me-2"></i>Home
@@ -75,42 +75,47 @@ const Header = () => {
             </li>
             {isAuthenticated && (
               <>
+                {
+                  process.env.REACT_APP_SUPERADMIN == user.id ?
+                    <li className="nav-item">
+                      <Link
+                        className={`nav-link fw-medium px-3 py-2 rounded-pill ${isActive('/upload') ? 'active bg-light text-success' : 'text-dark'}`}
+                        to="/upload"
+                      >
+                        <i className="fas fa-cloud-upload-alt me-2"></i>Upload
+                      </Link>
+                    </li>
+                    :
+                    <></>
+                }
                 <li className="nav-item">
-                  <Link 
-                    className={`nav-link fw-medium px-3 py-2 rounded-pill ${isActive('/upload') ? 'active bg-light text-success' : 'text-dark'}`} 
-                    to="/upload"
-                  >
-                    <i className="fas fa-cloud-upload-alt me-2"></i>Upload
-                  </Link>
-                </li>
-                <li className="nav-item">
-                  <Link 
-                    className={`nav-link fw-medium px-3 py-2 rounded-pill ${isActive('/news') ? 'active bg-light text-success' : 'text-dark'}`} 
+                  <Link
+                    className={`nav-link fw-medium px-3 py-2 rounded-pill ${isActive('/news') ? 'active bg-light text-success' : 'text-dark'}`}
                     to="/news"
                   >
                     <i className="fas fa-newspaper me-2"></i>News
                   </Link>
                 </li>
-                <li className="nav-item">
-                  <Link 
-                    className={`nav-link fw-medium px-3 py-2 rounded-pill ${isActive('/context') ? 'active bg-light text-success' : 'text-dark'}`} 
+                {/* <li className="nav-item">
+                  <Link
+                    className={`nav-link fw-medium px-3 py-2 rounded-pill ${isActive('/context') ? 'active bg-light text-success' : 'text-dark'}`}
                     to="/context"
                   >
                     <i className="fas fa-lightbulb me-2"></i>Context
                   </Link>
                 </li>
                 <li className="nav-item">
-                  <Link 
-                    className={`nav-link fw-medium px-3 py-2 rounded-pill ${isActive('/perspective') ? 'active bg-light text-success' : 'text-dark'}`} 
+                  <Link
+                    className={`nav-link fw-medium px-3 py-2 rounded-pill ${isActive('/perspective') ? 'active bg-light text-success' : 'text-dark'}`}
                     to="/perspective"
                   >
                     <i className="fas fa-eye me-2"></i>Perspective
                   </Link>
-                </li>
+                </li> */}
               </>
             )}
           </ul>
-          
+
           <ul className="navbar-nav">
             {!loading && (
               <>
@@ -123,8 +128,8 @@ const Header = () => {
                       onClick={toggleDropdown}
                       style={{ textDecoration: 'none', cursor: 'pointer' }}
                     >
-                      <div className="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-2" 
-                           style={{ width: '32px', height: '32px', fontSize: '14px' }}>
+                      <div className="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-2"
+                        style={{ width: '32px', height: '32px', fontSize: '14px' }}>
                         {(user?.first_name?.[0] || user?.email?.[0] || 'U').toUpperCase()}
                       </div>
                       <span className="d-none d-md-inline">
@@ -133,8 +138,8 @@ const Header = () => {
                       <i className={`fas fa-chevron-down ms-2 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} style={{ fontSize: '12px' }}></i>
                     </a>
                     {dropdownOpen && (
-                      <ul className="dropdown-menu dropdown-menu-end shadow border-0 show position-absolute" 
-                          style={{ top: '100%', right: '0', zIndex: 1000 }}>
+                      <ul className="dropdown-menu dropdown-menu-end shadow border-0 show position-absolute"
+                        style={{ top: '100%', right: '0', zIndex: 1000 }}>
                         <li>
                           <div className="dropdown-item-text">
                             <div className="fw-medium text-dark">{user?.first_name ? `${user.first_name} ${user.last_name || ''}`.trim() : 'User'}</div>
@@ -154,16 +159,16 @@ const Header = () => {
                 ) : (
                   <>
                     <li className="nav-item me-2">
-                      <Link 
-                        className={`nav-link fw-medium px-3 py-2 rounded-pill ${isActive('/login') ? 'bg-success text-white' : 'text-dark border'}`} 
+                      <Link
+                        className={`nav-link fw-medium px-3 py-2 rounded-pill ${isActive('/login') ? 'bg-success text-white' : 'text-dark border'}`}
                         to="/login"
                       >
                         <i className="fas fa-sign-in-alt me-2"></i>Sign In
                       </Link>
                     </li>
                     <li className="nav-item">
-                      <Link 
-                        className={`nav-link fw-medium px-3 py-2 rounded-pill ${isActive('/register') ? 'bg-success text-white' : 'bg-success text-white'}`} 
+                      <Link
+                        className={`nav-link fw-medium px-3 py-2 rounded-pill ${isActive('/register') ? 'bg-success text-white' : 'bg-success text-white'}`}
                         to="/register"
                       >
                         <i className="fas fa-user-plus me-2"></i>Get Started

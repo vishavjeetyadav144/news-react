@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { homeAPI } from '../../services/api';
 import { parseHomePageData } from '../../services/dataParser';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Home = () => {
   const [newsArticles, setNewsArticles] = useState([]);
   const [totalArticles, setTotalArticles] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { user, logout, isAuthenticated } = useAuth();
 
   useEffect(() => {
     const fetchHomeData = async () => {
@@ -142,14 +144,19 @@ const Home = () => {
           </div>
         </div>
         
-        <div className="hero-actions">
-          <Link to="/upload" className="btn btn-primary btn-lg me-3">
-            <i className="fas fa-upload me-2"></i>Upload PDF
-          </Link>
-          <Link to="/news" className="btn btn-outline-secondary btn-lg">
-            <i className="fas fa-list me-2"></i>Browse All News
-          </Link>
-        </div>
+        {
+          isAuthenticated && process.env.REACT_APP_SUPERADMIN == user.id ?
+          <div className="hero-actions">
+            <Link to="/upload" className="btn btn-primary btn-lg me-3">
+              <i className="fas fa-upload me-2"></i>Upload PDF
+            </Link>
+            <Link to="/news" className="btn btn-outline-secondary btn-lg">
+              <i className="fas fa-list me-2"></i>Browse All News
+            </Link>
+          </div>
+          :
+          <></>
+        }
       </div>
 
       {/* Featured News Section */}
