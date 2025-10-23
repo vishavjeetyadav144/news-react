@@ -76,10 +76,6 @@ const Login = () => {
     <div className="auth-container">
       <div className="container">
         {/* Hero Section */}
-        <div className="auth-hero">
-          <h1>Welcome Back</h1>
-          <p>Sign in to access your UPSC news analysis dashboard</p>
-        </div>
 
         <div className="row justify-content-center">
           <div className="col-md-6 col-lg-5">

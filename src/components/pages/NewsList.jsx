@@ -722,6 +722,113 @@ const NewsList = () => {
           )}
         </div>
       )}
+
+      {/* Pagination */}
+      {newsArticles.length > 0 && totalPages > 1 && (
+        <div className="pagination-container mt-5">
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <div className="pagination-info">
+              <small className="text-muted">
+                Showing page {currentPage} of {totalPages} 
+                ({totalArticles} total articles)
+              </small>
+            </div>
+            <div className="pagination-controls">
+              <nav aria-label="News articles pagination">
+                <ul className="pagination pagination-sm mb-0">
+                  {/* First Page */}
+                  <li className={`page-item ${!hasPrevious ? 'disabled' : ''}`}>
+                    <button 
+                      className="page-link"
+                      onClick={goToFirstPage}
+                      disabled={!hasPrevious}
+                      title="First page"
+                    >
+                      <i className="fas fa-angle-double-left"></i>
+                    </button>
+                  </li>
+                  
+                  {/* Previous Page */}
+                  <li className={`page-item ${!hasPrevious ? 'disabled' : ''}`}>
+                    <button 
+                      className="page-link"
+                      onClick={goToPreviousPage}
+                      disabled={!hasPrevious}
+                      title="Previous page"
+                    >
+                      <i className="fas fa-angle-left"></i>
+                    </button>
+                  </li>
+                  
+                  {/* Page Numbers */}
+                  {getPageNumbers().map((page, index) => (
+                    <li key={index} className={`page-item ${page === currentPage ? 'active' : ''}`}>
+                      {page === '...' ? (
+                        <span className="page-link">...</span>
+                      ) : (
+                        <button 
+                          className="page-link"
+                          onClick={() => handlePageChange(page)}
+                        >
+                          {page}
+                        </button>
+                      )}
+                    </li>
+                  ))}
+                  
+                  {/* Next Page */}
+                  <li className={`page-item ${!hasNext ? 'disabled' : ''}`}>
+                    <button 
+                      className="page-link"
+                      onClick={goToNextPage}
+                      disabled={!hasNext}
+                      title="Next page"
+                    >
+                      <i className="fas fa-angle-right"></i>
+                    </button>
+                  </li>
+                  
+                  {/* Last Page */}
+                  <li className={`page-item ${!hasNext ? 'disabled' : ''}`}>
+                    <button 
+                      className="page-link"
+                      onClick={goToLastPage}
+                      disabled={!hasNext}
+                      title="Last page"
+                    >
+                      <i className="fas fa-angle-double-right"></i>
+                    </button>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+          </div>
+          
+          {/* Quick Page Jump */}
+          {totalPages > 10 && (
+            <div className="quick-jump text-center">
+              <div className="d-inline-flex align-items-center gap-2">
+                <small className="text-muted">Jump to page:</small>
+                <input 
+                  type="number" 
+                  className="form-control form-control-sm"
+                  style={{width: '80px'}}
+                  min="1" 
+                  max={totalPages}
+                  value={currentPage}
+                  onChange={(e) => {
+                    const page = parseInt(e.target.value);
+                    if (page >= 1 && page <= totalPages) {
+                      handlePageChange(page);
+                    }
+                  }}
+                />
+                <small className="text-muted">of {totalPages}</small>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

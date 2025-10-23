@@ -17,6 +17,9 @@ const getCSRFToken = () => {
 const apiRequest = async (endpoint, options = {}) => {
   const url = `${API_BASE_URL}${endpoint}`;
   
+  // Get JWT token from localStorage
+  const accessToken = localStorage.getItem('access_token');
+  
   const defaultOptions = {
     headers: {
       'Content-Type': 'application/json',
@@ -24,6 +27,11 @@ const apiRequest = async (endpoint, options = {}) => {
     },
     credentials: 'include', // Include cookies for CSRF
   };
+
+  // Add Authorization header if token exists
+  if (accessToken) {
+    defaultOptions.headers['Authorization'] = `Bearer ${accessToken}`;
+  }
 
   // For FormData, don't set Content-Type (let browser set it)
   if (options.body instanceof FormData) {
@@ -53,6 +61,45 @@ const apiRequest = async (endpoint, options = {}) => {
     }
 
     if (!response.ok) {
+      // If unauthorized and we have a refresh token, try to refresh
+      if (response.status === 401 && localStorage.getItem('refresh_token')) {
+        try {
+          const refreshToken = localStorage.getItem('refresh_token');
+          const refreshResponse = await fetch(`${API_BASE_URL}/auth/token/refresh/`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              refresh: refreshToken
+            }),
+          });
+
+          if (refreshResponse.ok) {
+            const refreshData = await refreshResponse.json();
+            localStorage.setItem('access_token', refreshData.access);
+            
+            // Retry the original request with new token
+            config.headers['Authorization'] = `Bearer ${refreshData.access}`;
+            const retryResponse = await fetch(url, config);
+            
+            if (retryResponse.ok) {
+              const retryContentType = retryResponse.headers.get('content-type');
+              if (retryContentType && retryContentType.includes('application/json')) {
+                return await retryResponse.json();
+              } else {
+                return await retryResponse.text();
+              }
+            }
+          }
+        } catch (refreshError) {
+          console.error('Token refresh failed:', refreshError);
+          // Clear invalid tokens
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+        }
+      }
+      
       throw new Error(data.message || `HTTP error! status: ${response.status}`);
     }
 

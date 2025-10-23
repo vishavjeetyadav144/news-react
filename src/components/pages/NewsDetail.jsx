@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { newsAPI } from '../../services/api';
 import { parseNewsDetailData } from '../../services/dataParser';
+import { useAuth } from '../../contexts/AuthContext';
 
 const NewsDetail = () => {
   const { id } = useParams();
@@ -17,6 +18,7 @@ const NewsDetail = () => {
   const [relatedLoading, setRelatedLoading] = useState(false);
   const [relatedError, setRelatedError] = useState(false);
   const [error, setError] = useState(null);
+  const { user, logout, isAuthenticated } = useAuth();
 
   useEffect(() => {
     const fetchArticleDetail = async () => {
@@ -188,7 +190,7 @@ const NewsDetail = () => {
     try {
       // Call the backend API to get related articles
       const response = await newsAPI.getRelatedArticles(id);
-      
+
       if (response && response.related_articles) {
         setRelatedArticles(response.related_articles);
       } else {
@@ -197,7 +199,7 @@ const NewsDetail = () => {
     } catch (err) {
       console.error('Error loading related articles:', err);
       setRelatedError(true);
-      
+
       // Fallback to empty array on error
       setRelatedArticles([]);
     } finally {
@@ -219,7 +221,7 @@ const NewsDetail = () => {
 
     try {
       const response = await newsAPI.deleteArticle(article.id);
-      
+
       if (response.success) {
         showNotification('Article deleted successfully', 'success');
         // Navigate back to news list after successful deletion
@@ -330,51 +332,51 @@ const NewsDetail = () => {
         <h1 className="article-headline">{article.headline}</h1>
 
         <div className="article-meta d-flex align-items-center gap-4 mb-4">
-          <div style={{gap: "20px", display: "flex"}}>
+          <div style={{ gap: "20px", display: "flex" }}>
 
-          <div className="meta-item">
-            <i className="fas fa-calendar-alt me-2 text-muted"></i>
-            <span className="text-muted">{formatDate(article.last_updated)}</span>
-          </div>
-          <div className="meta-item">
-            <span className="badge bg-light text-dark">{currentPosition} of {totalArticles}</span>
-          </div>
+            <div className="meta-item">
+              <i className="fas fa-calendar-alt me-2 text-muted"></i>
+              <span className="text-muted">{formatDate(article.last_updated)}</span>
+            </div>
+            <div className="meta-item">
+              <span className="badge bg-light text-dark">{currentPosition} of {totalArticles}</span>
+            </div>
           </div>
 
-          <div style={{gap: "15px", display: "flex"}}>
-          <div className="meta-item">
-            <button
-              className={`btn btn-sm read-status-btn ${article.is_read ? 'btn-success' : 'btn-outline-primary'}`}
-              onClick={toggleReadStatus}
-            >
-              {article.is_read ? (
-                <>
-                  <i className="fas fa-check-circle me-1"></i>Read
-                </>
-              ) : (
-                <>
-                  <i className="fas fa-circle me-1"></i>Mark as Read
-                </>
-              )}
-            </button>
-          </div>
-          <div className="meta-item">
-            <button
-              className={`btn btn-sm important-status-btn ${article.is_important ? 'btn-warning' : 'btn-outline-warning'}`}
-              onClick={toggleImportantStatus}
-            >
-              <i className="fas fa-star me-1"></i>
-              {article.is_important ? 'Important' : 'Mark as Important'}
-            </button>
-          </div>
-          <div className="meta-item">
-            <button
-              className="btn btn-sm btn-outline-primary related-articles-btn"
-              onClick={openRelatedDrawer}
-            >
-              <i className="fas fa-search me-1"></i>Related Articles
-            </button>
-          </div>
+          <div style={{ gap: "15px", display: "flex" }}>
+            <div className="meta-item">
+              <button
+                className={`btn btn-sm read-status-btn ${article.is_read ? 'btn-success' : 'btn-outline-primary'}`}
+                onClick={toggleReadStatus}
+              >
+                {article.is_read ? (
+                  <>
+                    <i className="fas fa-check-circle me-1"></i>Read
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-circle me-1"></i>Mark as Read
+                  </>
+                )}
+              </button>
+            </div>
+            <div className="meta-item">
+              <button
+                className={`btn btn-sm important-status-btn ${article.is_important ? 'btn-warning' : 'btn-outline-warning'}`}
+                onClick={toggleImportantStatus}
+              >
+                <i className="fas fa-star me-1"></i>
+                {article.is_important ? 'Important' : 'Mark as Important'}
+              </button>
+            </div>
+            <div className="meta-item">
+              <button
+                className="btn btn-sm btn-outline-primary related-articles-btn"
+                onClick={openRelatedDrawer}
+              >
+                <i className="fas fa-search me-1"></i>Related Articles
+              </button>
+            </div>
 
           </div>
         </div>
@@ -452,17 +454,30 @@ const NewsDetail = () => {
             </div>
 
             {/* Article Actions */}
-            <div className="article-actions mb-5">
-              <button className="btn btn-outline-primary me-3" onClick={copyToClipboard}>
-                <i className="fas fa-copy me-2"></i>Copy Article
-              </button>
-              <button className="btn btn-outline-success me-3" onClick={shareArticle}>
-                <i className="fas fa-share me-2"></i>Share
-              </button>
-              <button className="btn btn-outline-danger" onClick={deleteArticle}>
-                <i className="fas fa-trash me-2"></i>Delete Article
-              </button>
-            </div>
+            {
+              isAuthenticated && process.env.REACT_APP_SUPERADMIN == user.id ?
+
+                <div className="article-actions mb-5">
+                  <button className="btn btn-outline-primary me-3" onClick={copyToClipboard}>
+                    <i className="fas fa-copy me-2"></i>Copy Article
+                  </button>
+                  <button className="btn btn-outline-success me-3" onClick={shareArticle}>
+                    <i className="fas fa-share me-2"></i>Share
+                  </button>
+                  <button className="btn btn-outline-danger" onClick={deleteArticle}>
+                    <i className="fas fa-trash me-2"></i>Delete Article
+                  </button>
+                </div>
+                :
+                <div className="article-actions mb-5">
+                  <button className="btn btn-outline-primary me-3" onClick={copyToClipboard}>
+                    <i className="fas fa-copy me-2"></i>Copy Article
+                  </button>
+                  <button className="btn btn-outline-success me-3" onClick={shareArticle}>
+                    <i className="fas fa-share me-2"></i>Share
+                  </button>
+                </div>
+            }
           </article>
         </div>
 
@@ -620,8 +635,8 @@ const NewsDetail = () => {
                 <div>
                   {relatedArticles.map((relatedArticle) => (
                     <div key={relatedArticle.id} className="related-article-card mb-3">
-                      <Link 
-                        to={`/news/${relatedArticle.id}`} 
+                      <Link
+                        to={`/news/${relatedArticle.id}`}
                         className="text-decoration-none"
                         onClick={closeRelatedDrawer}
                       >
