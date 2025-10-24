@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import { newsAPI } from '../../services/api';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { newsAPI, userAPI, articleManagementAPI } from '../../services/api';
 import { parseNewsListData } from '../../services/dataParser';
 import { useAuth } from '../../contexts/AuthContext';
+import CustomTagsModal from '../CustomTagsModal';
 
 const NewsList = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const searchParams = new URLSearchParams(location.search);
+  
+  const setSearchParams = (params) => {
+    navigate(`${location.pathname}?${params.toString()}`);
+  };
   const [newsArticles, setNewsArticles] = useState([]);
   const [totalArticles, setTotalArticles] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -29,6 +36,14 @@ const NewsList = () => {
   const [dateTo, setDateTo] = useState(searchParams.get('date_to') || '');
   const [readStatus, setReadStatus] = useState(searchParams.get('read_status') || '');
   const [perPage, setPerPage] = useState(parseInt(searchParams.get('per_page')) || 6);
+
+  // Custom Tags States
+  const [availableCustomTags, setAvailableCustomTags] = useState([]);
+  const [showCustomTagsModal, setShowCustomTagsModal] = useState(false);
+  const [currentArticleForTags, setCurrentArticleForTags] = useState(null);
+  const [newCustomTag, setNewCustomTag] = useState('');
+  const [selectedCustomTags, setSelectedCustomTags] = useState([]);
+  const [customTagsLoading, setCustomTagsLoading] = useState(false);
 
   useEffect(() => {
     const fetchNewsData = async () => {
@@ -309,6 +324,97 @@ const NewsList = () => {
 
   const splitTags = (tags) => {
     return tags;
+  };
+
+  // Custom Tags Functions
+  const loadCustomTags = async () => {
+    if (!isAuthenticated) return;
+
+    try {
+      const response = await userAPI.getCustomTags();
+      if (response.success) {
+        setAvailableCustomTags(response.custom_tags || []);
+      }
+    } catch (err) {
+      console.error('Error loading custom tags:', err);
+    }
+  };
+
+  const openCustomTagsModal = (article) => {
+    setCurrentArticleForTags(article);
+    setShowCustomTagsModal(true);
+    setSelectedCustomTags(article.custom_tags || []);
+    loadCustomTags();
+  };
+
+  const closeCustomTagsModal = () => {
+    setShowCustomTagsModal(false);
+    setCurrentArticleForTags(null);
+    setNewCustomTag('');
+    setSelectedCustomTags([]);
+  };
+
+  const addCustomTagToSelection = (tagName) => {
+    if (!selectedCustomTags.includes(tagName)) {
+      setSelectedCustomTags([...selectedCustomTags, tagName]);
+    }
+  };
+
+  const removeCustomTagFromSelection = (tagName) => {
+    setSelectedCustomTags(selectedCustomTags.filter(tag => tag !== tagName));
+  };
+
+  const createNewCustomTag = async () => {
+    if (!newCustomTag.trim()) return;
+
+    try {
+      const response = await userAPI.createCustomTag({
+        tag_name: newCustomTag.trim(),
+        tag_color: '#007bff',
+        description: ''
+      });
+
+      if (response.success) {
+        setAvailableCustomTags([...availableCustomTags, response.tag]);
+        addCustomTagToSelection(newCustomTag.trim());
+        setNewCustomTag('');
+        showNotification('Custom tag created successfully!', 'success');
+      } else {
+        showNotification(response.message || 'Error creating custom tag', 'error');
+      }
+    } catch (err) {
+      console.error('Error creating custom tag:', err);
+      showNotification('Failed to create custom tag', 'error');
+    }
+  };
+
+  const saveCustomTags = async () => {
+    if (!currentArticleForTags) return;
+
+    try {
+      setCustomTagsLoading(true);
+      const response = await articleManagementAPI.addCustomTagsToArticle(currentArticleForTags.id, selectedCustomTags);
+
+      if (response.success) {
+        // Update the article in the list
+        setNewsArticles(articles =>
+          articles.map(article =>
+            article.id === currentArticleForTags.id
+              ? { ...article, custom_tags: selectedCustomTags }
+              : article
+          )
+        );
+        closeCustomTagsModal();
+        showNotification('Custom tags updated successfully!', 'success');
+      } else {
+        showNotification(response.message || 'Error updating custom tags', 'error');
+      }
+    } catch (err) {
+      console.error('Error saving custom tags:', err);
+      showNotification('Failed to save custom tags', 'error');
+    } finally {
+      setCustomTagsLoading(false);
+    }
   };
 
   // Pagination functions
@@ -601,12 +707,15 @@ const NewsList = () => {
                 >
                   <i className={`fas ${article.is_read ? 'fa-eye-slash' : 'fa-eye'}`}></i>
                 </button>
-                <button
-                  className="btn btn-sm btn-outline-secondary btn-action"
-                  title="Edit Tags"
-                >
-                  <i className="fas fa-tags"></i>
-                </button>
+                {isAuthenticated && (
+                  <button
+                    className="btn btn-sm btn-outline-secondary btn-action"
+                    title="Edit Custom Tags"
+                    onClick={() => openCustomTagsModal(article)}
+                  >
+                    <i className="fas fa-tags"></i>
+                  </button>
+                )}
                 {
                   isAuthenticated && user.permissions.can_delete_articles ?
                     <button
@@ -662,7 +771,7 @@ const NewsList = () => {
               {/* Tags */}
               <div className="article-tags mb-3">
                 <div className="editable-tags">
-                  {splitTags(article.tags).map((tag, index) => (
+                  {splitTags([...article.tags, ...article.custom_tags ]).map((tag, index) => (
                     <Link
                       key={index}
                       to={`/news?tag=${encodeURIComponent(tag)}`}
@@ -672,7 +781,7 @@ const NewsList = () => {
                       {tag}
                     </Link>
                   ))}
-                  <i className="fas fa-edit text-muted ms-1" style={{ fontSize: '0.75rem' }}></i>
+                  {/* <i className="fas fa-edit text-muted ms-1" style={{ fontSize: '0.75rem' }}></i> */}
                 </div>
               </div>
 
@@ -856,6 +965,26 @@ const NewsList = () => {
           )}
         </div>
       )}
+
+      {/* Custom Tags Modal */}
+      <CustomTagsModal
+        show={showCustomTagsModal}
+        onClose={closeCustomTagsModal}
+        article={currentArticleForTags}
+        onSave={(tags) => {
+          if (currentArticleForTags) {
+            setNewsArticles(articles =>
+              articles.map(article =>
+                article.id === currentArticleForTags.id
+                  ? { ...article, custom_tags: tags }
+                  : article
+              )
+            );
+            showNotification('Custom tags updated successfully!', 'success');
+          }
+        }}
+        isAuthenticated={isAuthenticated}
+      />
     </div>
   );
 };

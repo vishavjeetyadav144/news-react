@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { newsAPI } from '../../services/api';
+import { newsAPI, userAPI, articleManagementAPI } from '../../services/api';
 import { parseNewsDetailData } from '../../services/dataParser';
 import { useAuth } from '../../contexts/AuthContext';
+import CustomTagsModal from '../CustomTagsModal';
 
 const NewsDetail = () => {
   const { id } = useParams();
@@ -19,6 +20,14 @@ const NewsDetail = () => {
   const [relatedError, setRelatedError] = useState(false);
   const [error, setError] = useState(null);
   const { user, logout, isAuthenticated } = useAuth();
+
+  // Custom Tags State
+  const [customTags, setCustomTags] = useState([]);
+  const [availableCustomTags, setAvailableCustomTags] = useState([]);
+  const [customTagsLoading, setCustomTagsLoading] = useState(false);
+  const [showCustomTagsModal, setShowCustomTagsModal] = useState(false);
+  const [newCustomTag, setNewCustomTag] = useState('');
+  const [selectedCustomTags, setSelectedCustomTags] = useState([]);
 
   useEffect(() => {
     const fetchArticleDetail = async () => {
@@ -38,6 +47,11 @@ const NewsDetail = () => {
         setCurrentPosition(data.navigation.current_position);
         setTotalArticles(data.navigation.total_articles);
 
+        // Load custom tags for authenticated users
+        if (isAuthenticated) {
+          loadCustomTags();
+        }
+
       } catch (err) {
         console.error('Error fetching article detail:', err);
         setError(err.message);
@@ -56,7 +70,8 @@ const NewsDetail = () => {
             created_at: new Date('2024-01-15'),
             is_read: false,
             is_important: false,
-            pinecone_id: "article_digital_india_2024_001"
+            pinecone_id: "article_digital_india_2024_001",
+            custom_tags: [] // Initialize custom tags
           }
         ];
 
@@ -74,7 +89,87 @@ const NewsDetail = () => {
     if (id) {
       fetchArticleDetail();
     }
-  }, [id]);
+  }, [id, isAuthenticated]);
+
+  // Custom Tags Functions
+  const loadCustomTags = async () => {
+    if (!isAuthenticated) return;
+
+    try {
+      const response = await userAPI.getCustomTags();
+      if (response.success) {
+        setAvailableCustomTags(response.custom_tags || []);
+      }
+    } catch (err) {
+      console.error('Error loading custom tags:', err);
+    }
+  };
+
+  const openCustomTagsModal = () => {
+    setShowCustomTagsModal(true);
+    setSelectedCustomTags(article.custom_tags || []);
+  };
+
+  const closeCustomTagsModal = () => {
+    setShowCustomTagsModal(false);
+    setNewCustomTag('');
+    setSelectedCustomTags([]);
+  };
+
+  const addCustomTagToSelection = (tagName) => {
+    if (!selectedCustomTags.includes(tagName)) {
+      setSelectedCustomTags([...selectedCustomTags, tagName]);
+    }
+  };
+
+  const removeCustomTagFromSelection = (tagName) => {
+    setSelectedCustomTags(selectedCustomTags.filter(tag => tag !== tagName));
+  };
+
+  const createNewCustomTag = async () => {
+    if (!newCustomTag.trim()) return;
+
+    try {
+      const response = await userAPI.createCustomTag({
+        tag_name: newCustomTag.trim(),
+        tag_color: '#007bff',
+        description: ''
+      });
+
+      if (response.success) {
+        setAvailableCustomTags([...availableCustomTags, response.tag]);
+        addCustomTagToSelection(newCustomTag.trim());
+        setNewCustomTag('');
+        showNotification('Custom tag created successfully!', 'success');
+      } else {
+        showNotification(response.message || 'Error creating custom tag', 'error');
+      }
+    } catch (err) {
+      console.error('Error creating custom tag:', err);
+      showNotification('Failed to create custom tag', 'error');
+    }
+  };
+
+  const saveCustomTags = async () => {
+    try {
+      setCustomTagsLoading(true);
+      const response = await articleManagementAPI.addCustomTagsToArticle(article.id, selectedCustomTags);
+
+      if (response.success) {
+        setArticle(prev => ({ ...prev, custom_tags: selectedCustomTags }));
+        setCustomTags(selectedCustomTags);
+        closeCustomTagsModal();
+        showNotification('Custom tags updated successfully!', 'success');
+      } else {
+        showNotification(response.message || 'Error updating custom tags', 'error');
+      }
+    } catch (err) {
+      console.error('Error saving custom tags:', err);
+      showNotification('Failed to save custom tags', 'error');
+    } finally {
+      setCustomTagsLoading(false);
+    }
+  };
 
   const toggleReadStatus = async () => {
     try {
@@ -529,6 +624,38 @@ const NewsDetail = () => {
               </div>
             </div>
 
+            {/* Custom Tags Section */}
+            {isAuthenticated && (
+              <div className="sidebar-section mb-4">
+                <div className="d-flex justify-content-between align-items-center mb-3">
+                  <h4 className="sidebar-heading mb-0">My Tags</h4>
+                  <button
+                    className="btn btn-sm btn-outline-primary"
+                    onClick={openCustomTagsModal}
+                  >
+                    <i className="fas fa-plus me-1"></i>Add Tags
+                  </button>
+                </div>
+                <div className="custom-tags-display">
+                  {article.custom_tags && article.custom_tags.length > 0 ? (
+                    <div className="custom-tags-list">
+                      {article.custom_tags.map((tag, index) => (
+                        <span key={index} className="custom-tag-badge me-2 mb-2">
+                          <i className="fas fa-tag me-1"></i>
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="no-custom-tags text-muted">
+                      <i className="fas fa-info-circle me-2"></i>
+                      <small>No personal tags added yet. Click "Add Tags" to organize this article with your own tags.</small>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Study Tips */}
             <div className="sidebar-section mb-4">
               <h4 className="sidebar-heading">Study Tips</h4>
@@ -680,6 +807,19 @@ const NewsDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* Custom Tags Modal */}
+      <CustomTagsModal
+        show={showCustomTagsModal}
+        onClose={closeCustomTagsModal}
+        article={article}
+        onSave={(tags) => {
+          setArticle(prev => ({ ...prev, custom_tags: tags }));
+          setCustomTags(tags);
+          showNotification('Custom tags updated successfully!', 'success');
+        }}
+        isAuthenticated={isAuthenticated}
+      />
     </div>
   );
 };

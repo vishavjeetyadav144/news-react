@@ -28,6 +28,7 @@
     "react-dom": "^18.0.0",
     "react-router-dom": "^6.0.0",
     "react-scripts": "5.0.1",
+    "react-select": "^5.10.2",
     "sass": "^1.0.0"
   },
   "browserslist": {

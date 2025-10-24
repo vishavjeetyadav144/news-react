@@ -35,8 +35,14 @@ export const parseNewsListData = (jsonResponse) => {
     };
   }
 
+  // Ensure each article has custom_tags field
+  const articles = (jsonResponse.articles || []).map(article => ({
+    ...article,
+    custom_tags: Array.isArray(article.custom_tags) ? article.custom_tags : []
+  }));
+
   return {
-    news_articles: jsonResponse.articles || [],
+    news_articles: articles,
     total_articles: jsonResponse.pagination?.total_articles || 0,
     pagination: {
       current_page: jsonResponse.pagination?.current_page || 1,
@@ -79,7 +85,8 @@ export const parseNewsDetailData = (jsonResponse) => {
       topics: Array.isArray(article.topics) ? article.topics : [],
       last_updated: article.last_updated || new Date().toISOString(),
       is_read: article.is_read || false,
-      is_important: article.is_important || false
+      is_important: article.is_important || false,
+      custom_tags: Array.isArray(article.custom_tags) ? article.custom_tags : []
     },
     navigation: {
       previous: article.navigation?.previous || null,
