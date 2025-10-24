@@ -194,12 +194,24 @@ const Upload = () => {
   return (
     <div className="upload-page">
       {/* Hero Section */}
-      <div className="upload-hero text-center mb-5">
+      
+
+      {
+          isAuthenticated && user.permissions.can_upload_pdfs ?
+          <div className="upload-hero text-center mb-5">
         <h1 className="display-4 fw-bold text-dark mb-3">Upload Your PDF</h1>
         <p className="lead text-muted mb-4">
           Transform newspaper PDFs into structured UPSC-relevant news articles using AI
         </p>
       </div>
+          :
+          <div className="upload-hero text-center mb-5">
+        <h1 className="display-4 fw-bold text-dark mb-3">AI Processed PDF</h1>
+        <p className="lead text-muted mb-4">
+          Newspaper PDFs into structured UPSC-relevant news articles using AI
+        </p>
+      </div>
+      }
 
       <div className="row justify-content-center">
         <div className="col-lg-8 col-xl-6">
