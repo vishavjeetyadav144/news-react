@@ -259,6 +259,103 @@ export const customAPI = {
   delete: (endpoint, options = {}) => apiRequest(endpoint, { method: 'DELETE', ...options }),
 };
 
+// User Permissions API endpoints
+export const userAPI = {
+  // Get user permissions and preferences
+  getPermissions: async () => {
+    return apiRequest('/user/permissions/');
+  },
+
+  // Update user preferences
+  updatePreferences: async (preferences) => {
+    return apiRequest('/user/permissions/', {
+      method: 'POST',
+      body: JSON.stringify(preferences),
+    });
+  },
+
+  // Get user's custom tags
+  getCustomTags: async () => {
+    return apiRequest('/user/custom-tags/');
+  },
+
+  // Create new custom tag
+  createCustomTag: async (tagData) => {
+    return apiRequest('/user/custom-tags/', {
+      method: 'POST',
+      body: JSON.stringify(tagData),
+    });
+  },
+
+  // Update custom tag
+  updateCustomTag: async (tagId, tagData) => {
+    return apiRequest(`/user/custom-tags/${tagId}/`, {
+      method: 'PUT',
+      body: JSON.stringify(tagData),
+    });
+  },
+
+  // Delete custom tag
+  deleteCustomTag: async (tagId) => {
+    return apiRequest(`/user/custom-tags/${tagId}/`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Admin Management Functions
+  // Get all users with their permissions
+  getAllUsersPermissions: async () => {
+    return apiRequest('/api/admin/users/permissions/');
+  },
+
+  // Update user permissions
+  updateUserPermissions: async (userId, permissions) => {
+    return apiRequest(`/api/admin/users/${userId}/permissions/`, {
+      method: 'PUT',
+      body: JSON.stringify(permissions),
+    });
+  },
+
+  // Bulk update user permissions
+  bulkUpdatePermissions: async (updates) => {
+    return apiRequest('/api/admin/users/bulk-permissions/', {
+      method: 'POST',
+      body: JSON.stringify({ updates }),
+    });
+  },
+
+  // Get admin dashboard statistics
+  getAdminDashboardStats: async () => {
+    return apiRequest('/api/admin/dashboard/stats/');
+  },
+};
+
+// Enhanced Article Management API endpoints
+export const articleManagementAPI = {
+  // Delete article with permission check
+  deleteArticleWithPermission: async (articleId) => {
+    return apiRequest(`/news/${articleId}/delete-with-permission/`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Update global tags with permission check
+  updateGlobalTags: async (articleId, tags) => {
+    return apiRequest(`/news/${articleId}/update-global-tags/`, {
+      method: 'PUT',
+      body: JSON.stringify({ tags }),
+    });
+  },
+
+  // Add custom tags to article
+  addCustomTagsToArticle: async (articleId, customTags) => {
+    return apiRequest(`/news/${articleId}/add-custom-tags/`, {
+      method: 'POST',
+      body: JSON.stringify({ custom_tags: customTags }),
+    });
+  },
+};
+
 export default {
   newsAPI,
   uploadAPI,
@@ -266,4 +363,6 @@ export default {
   perspectiveAPI,
   homeAPI,
   customAPI,
+  userAPI,
+  articleManagementAPI,
 };

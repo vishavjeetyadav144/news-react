@@ -76,7 +76,7 @@ const Header = () => {
             {isAuthenticated && (
               <>
                 {
-                  process.env.REACT_APP_SUPERADMIN == user.id ?
+                  true ?
                     <li className="nav-item">
                       <Link
                         className={`nav-link fw-medium px-3 py-2 rounded-pill ${isActive('/upload') ? 'active bg-light text-success' : 'text-dark'}`}
@@ -147,6 +147,17 @@ const Header = () => {
                           </div>
                         </li>
                         <li><hr className="dropdown-divider" /></li>
+                        {(user?.id === 1 || user?.permissions?.can_manage_users) && (
+                          <>
+                            <li>
+                              <Link className="dropdown-item d-flex align-items-center py-2" to="/admin">
+                                <i className="fas fa-users-cog me-3 text-primary"></i>
+                                <span>Admin Panel</span>
+                              </Link>
+                            </li>
+                            <li><hr className="dropdown-divider" /></li>
+                          </>
+                        )}
                         <li>
                           <a className="dropdown-item d-flex align-items-center py-2" href="#" onClick={handleLogout}>
                             <i className="fas fa-sign-out-alt me-3 text-danger"></i>

@@ -145,7 +145,7 @@ const Home = () => {
         </div>
         
         {
-          isAuthenticated && process.env.REACT_APP_SUPERADMIN == user.id ?
+          true ?
           <div className="hero-actions">
             <Link to="/upload" className="btn btn-primary btn-lg me-3">
               <i className="fas fa-upload me-2"></i>Upload PDF

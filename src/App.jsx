@@ -13,6 +13,7 @@ import ContextDetails from './components/pages/ContextDetails';
 import PerspectiveDetails from './components/pages/PerspectiveDetails';
 import Login from './components/pages/Login';
 import Register from './components/pages/Register';
+import Admin from './components/pages/Admin';
 
 // Import styles
 import './styles/main.scss';
@@ -61,6 +62,11 @@ function App() {
             <Route path="/perspective/:id" element={
               <PrivateRoute>
                 <PerspectiveDetails />
+              </PrivateRoute>
+            } />
+            <Route path="/admin" element={
+              <PrivateRoute>
+                <Admin />
               </PrivateRoute>
             } />
           </Routes>

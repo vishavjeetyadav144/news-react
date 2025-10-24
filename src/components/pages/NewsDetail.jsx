@@ -455,7 +455,7 @@ const NewsDetail = () => {
 
             {/* Article Actions */}
             {
-              isAuthenticated && process.env.REACT_APP_SUPERADMIN == user.id ?
+              true ?
 
                 <div className="article-actions mb-5">
                   <button className="btn btn-outline-primary me-3" onClick={copyToClipboard}>
