@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { newsAPI } from '../../services/api';
 import { parseNewsListData } from '../../services/dataParser';
+import { useAuth } from '../../contexts/AuthContext';
 
 const NewsList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -12,13 +13,14 @@ const NewsList = () => {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [allTopics, setAllTopics] = useState([]);
   const [error, setError] = useState(null);
-  
+  const { user, logout, isAuthenticated } = useAuth();
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page')) || 1);
   const [totalPages, setTotalPages] = useState(1);
   const [hasNext, setHasNext] = useState(false);
   const [hasPrevious, setHasPrevious] = useState(false);
-  
+
   // Filter states
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [tagFilter, setTagFilter] = useState(searchParams.get('tag') || '');
@@ -33,7 +35,7 @@ const NewsList = () => {
       try {
         setLoading(true);
         setError(null);
-        
+
         // Build query parameters
         const params = {};
         if (searchQuery) params.search = searchQuery;
@@ -44,13 +46,13 @@ const NewsList = () => {
         if (readStatus) params.read_status = readStatus;
         if (perPage !== 6) params.per_page = perPage;
         if (currentPage !== 1) params.page = currentPage;
-        
+
         // Fetch data from Django backend
         const response = await newsAPI.getNews(params);
-        
+
         // Parse the HTML response to extract data
         const data = parseNewsListData(response);
-        
+
         setNewsArticles(data.news_articles || []);
         setTotalArticles(data.total_articles || 0);
         setAllTopics(data.filters.all_topics || []);
@@ -60,7 +62,7 @@ const NewsList = () => {
         setDateTo(data.filters.applied_filters.date_to)
         setTagFilter(data.filters.applied_filters.tag)
         setDateFrom(data.filters.applied_filters.date_from)
-        
+
         // Set pagination data
         if (data.pagination) {
           setCurrentPage(data.pagination.current_page || 1);
@@ -74,11 +76,11 @@ const NewsList = () => {
           setHasNext(currentPage < calculatedTotalPages);
           setHasPrevious(currentPage > 1);
         }
-        
+
       } catch (err) {
         console.error('Error fetching news data:', err);
         setError(err.message);
-        
+
         // Fallback to mock data on error
         const mockArticles = [
           {
@@ -104,7 +106,7 @@ const NewsList = () => {
             is_read: true
           }
         ];
-        
+
         setNewsArticles(mockArticles);
         setTotalArticles(mockArticles.length);
         setAllTopics([
@@ -135,7 +137,7 @@ const NewsList = () => {
     if (dateTo) params.set('date_to', dateTo);
     if (readStatus) params.set('read_status', readStatus);
     if (perPage !== 6) params.set('per_page', perPage.toString());
-    
+
     setSearchParams(params);
   };
 
@@ -198,9 +200,9 @@ const NewsList = () => {
 
       if (response.success) {
 
-        setNewsArticles(articles => 
-          articles.map(article => 
-            article.id === articleId 
+        setNewsArticles(articles =>
+          articles.map(article =>
+            article.id === articleId
               ? { ...article, is_read: !article.is_read }
               : article
           )
@@ -216,6 +218,26 @@ const NewsList = () => {
     }
   };
 
+  const showNotification = (message, type) => {
+    // Simple notification - in real app, you might use a toast library
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 1050; min-width: 300px;';
+    notification.innerHTML = `
+      ${message}
+      <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+    `;
+
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+      if (notification.parentNode) {
+        notification.remove();
+      }
+    }, 3000);
+  };
+
+
   const deleteArticle = async (articleId) => {
 
     try {
@@ -223,7 +245,7 @@ const NewsList = () => {
 
       if (response.success) {
 
-        setNewsArticles(articles => 
+        setNewsArticles(articles =>
           articles.filter(article => article.id !== articleId)
         );
 
@@ -239,19 +261,19 @@ const NewsList = () => {
 
   const formatDate = (dateString) => {
     if (!dateString) return '';
-    
+
     try {
       const date = new Date(dateString);
-      
+
       // Check if the date is valid
       if (isNaN(date.getTime())) {
         return dateString; // Return original string if date is invalid
       }
-      
-      return date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
+
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
       });
     } catch (error) {
       console.warn('Error formatting date:', dateString, error);
@@ -261,15 +283,15 @@ const NewsList = () => {
 
   const getTimeSince = (dateString) => {
     if (!dateString) return '';
-    
+
     try {
       const date = new Date(dateString);
-      
+
       // Check if the date is valid
       if (isNaN(date.getTime())) {
         return 'Unknown';
       }
-      
+
       const now = new Date();
       const diffTime = Math.abs(now - date);
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -299,7 +321,7 @@ const NewsList = () => {
       params.delete('page');
     }
     setSearchParams(params);
-    
+
     // Scroll to top when page changes
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -313,7 +335,7 @@ const NewsList = () => {
   const getPageNumbers = () => {
     const pages = [];
     const maxVisiblePages = 5;
-    
+
     if (totalPages <= maxVisiblePages) {
       // Show all pages if total is small
       for (let i = 1; i <= totalPages; i++) {
@@ -323,22 +345,22 @@ const NewsList = () => {
       // Show smart pagination
       const startPage = Math.max(1, currentPage - 2);
       const endPage = Math.min(totalPages, currentPage + 2);
-      
+
       if (startPage > 1) {
         pages.push(1);
         if (startPage > 2) pages.push('...');
       }
-      
+
       for (let i = startPage; i <= endPage; i++) {
         pages.push(i);
       }
-      
+
       if (endPage < totalPages) {
         if (endPage < totalPages - 1) pages.push('...');
         pages.push(totalPages);
       }
     }
-    
+
     return pages;
   };
 
@@ -369,7 +391,7 @@ const NewsList = () => {
             </Link>
           </div> */}
         </div>
-        
+
         {/* Search and Filters */}
         <div className="search-filters-section">
           <form onSubmit={handleSearch}>
@@ -377,9 +399,9 @@ const NewsList = () => {
               <div className="col-md-4">
                 <div className="search-container">
                   <div className="input-group">
-                    <input 
-                      type="text" 
-                      className="form-control" 
+                    <input
+                      type="text"
+                      className="form-control"
                       placeholder="Search articles..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
@@ -394,9 +416,9 @@ const NewsList = () => {
                 <div className="d-flex align-items-center justify-content-md-end flex-wrap gap-2">
                   <div className="per-page-selector">
                     <label className="form-label small fw-semibold me-2 mb-0">Per page:</label>
-                    <select 
-                      className="form-select form-select-sm" 
-                      style={{width: 'auto', display: 'inline-block'}}
+                    <select
+                      className="form-select form-select-sm"
+                      style={{ width: 'auto', display: 'inline-block' }}
                       value={perPage}
                       onChange={(e) => setPerPage(parseInt(e.target.value))}
                     >
@@ -406,22 +428,22 @@ const NewsList = () => {
                       <option value={48}>48</option>
                     </select>
                   </div>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="btn btn-outline-secondary btn-sm"
                     onClick={toggleSelectAll}
                   >
                     <i className="fas fa-check-square me-1"></i>Select All
                   </button>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="btn btn-outline-secondary btn-sm"
                     onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
                   >
                     <i className="fas fa-filter me-1"></i>Advanced Filters
                   </button>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="btn btn-outline-secondary btn-sm"
                     onClick={clearAllFilters}
                   >
@@ -430,15 +452,15 @@ const NewsList = () => {
                 </div>
               </div>
             </div>
-            
+
             {/* Advanced Filters Panel */}
             {showAdvancedFilters && (
               <div className="advanced-filters">
                 <div className="row g-3">
                   <div className="col-md-3">
                     <label className="form-label small fw-semibold">Date From</label>
-                    <input 
-                      type="date" 
+                    <input
+                      type="date"
                       className="form-control form-control-sm"
                       value={dateFrom}
                       onChange={(e) => setDateFrom(e.target.value)}
@@ -446,8 +468,8 @@ const NewsList = () => {
                   </div>
                   <div className="col-md-3">
                     <label className="form-label small fw-semibold">Date To</label>
-                    <input 
-                      type="date" 
+                    <input
+                      type="date"
                       className="form-control form-control-sm"
                       value={dateTo}
                       onChange={(e) => setDateTo(e.target.value)}
@@ -455,7 +477,7 @@ const NewsList = () => {
                   </div>
                   <div className="col-md-3">
                     <label className="form-label small fw-semibold">Topic</label>
-                    <select 
+                    <select
                       className="form-select form-select-sm"
                       value={topicFilter}
                       onChange={(e) => setTopicFilter(e.target.value)}
@@ -468,7 +490,7 @@ const NewsList = () => {
                   </div>
                   <div className="col-md-3">
                     <label className="form-label small fw-semibold">Read Status</label>
-                    <select 
+                    <select
                       className="form-select form-select-sm"
                       value={readStatus}
                       onChange={(e) => setReadStatus(e.target.value)}
@@ -482,7 +504,7 @@ const NewsList = () => {
               </div>
             )}
           </form>
-          
+
           {/* Active Filters */}
           {(searchQuery || tagFilter || topicFilter || dateFrom || dateTo || readStatus) && (
             <div className="active-filters mt-3">
@@ -490,7 +512,7 @@ const NewsList = () => {
                 <div className="filter-tag">
                   <i className="fas fa-search me-1"></i>
                   Search: "{searchQuery}"
-                  <button 
+                  <button
                     className="filter-remove"
                     onClick={() => removeFilter('search')}
                   >×</button>
@@ -500,7 +522,7 @@ const NewsList = () => {
                 <div className="filter-tag">
                   <i className="fas fa-tag me-1"></i>
                   Tag: {tagFilter}
-                  <button 
+                  <button
                     className="filter-remove"
                     onClick={() => removeFilter('tag')}
                   >×</button>
@@ -510,7 +532,7 @@ const NewsList = () => {
                 <div className="filter-tag">
                   <i className="fas fa-bookmark me-1"></i>
                   Topic: {topicFilter}
-                  <button 
+                  <button
                     className="filter-remove"
                     onClick={() => removeFilter('topic')}
                   >×</button>
@@ -520,7 +542,7 @@ const NewsList = () => {
                 <div className="filter-tag">
                   <i className="fas fa-eye me-1"></i>
                   Status: {readStatus}
-                  <button 
+                  <button
                     className="filter-remove"
                     onClick={() => removeFilter('read_status')}
                   >×</button>
@@ -543,7 +565,7 @@ const NewsList = () => {
               <button className="btn btn-outline-light btn-sm me-2">
                 <i className="fas fa-trash me-1"></i>Delete Selected
               </button>
-              <button 
+              <button
                 className="btn btn-outline-light btn-sm"
                 onClick={() => setSelectedArticles(new Set())}
               >
@@ -558,40 +580,45 @@ const NewsList = () => {
       {newsArticles.length > 0 ? (
         <div className="articles-grid">
           {newsArticles.map((article) => (
-            <article 
-              key={article.id} 
+            <article
+              key={article.id}
               className={`article-card fade-in ${article.is_read ? 'article-read' : ''}`}
             >
               {/* Selection Checkbox */}
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 className="article-checkbox"
                 checked={selectedArticles.has(article.id)}
                 onChange={() => toggleArticleSelection(article.id)}
               />
-              
+
               {/* Article Actions */}
               <div className="card-actions">
-                <button 
+                <button
                   className="btn btn-sm btn-outline-secondary btn-action"
                   onClick={() => toggleReadStatus(article.id)}
                   title={article.is_read ? "Mark as Unread" : "Mark as Read"}
                 >
                   <i className={`fas ${article.is_read ? 'fa-eye-slash' : 'fa-eye'}`}></i>
                 </button>
-                <button 
+                <button
                   className="btn btn-sm btn-outline-secondary btn-action"
                   title="Edit Tags"
                 >
                   <i className="fas fa-tags"></i>
                 </button>
-                <button 
-                  className="btn btn-sm btn-outline-danger btn-action"
-                  title="Delete Article"
-                  onClick={() => deleteArticle(article.id)}
-                >
-                  <i className="fas fa-trash"></i>
-                </button>
+                {
+                  isAuthenticated && user.permissions.can_delete_articles ?
+                    <button
+                      className="btn btn-sm btn-outline-danger btn-action"
+                      title="Delete Article"
+                      onClick={() => deleteArticle(article.id)}
+                    >
+                      <i className="fas fa-trash"></i>
+                    </button>
+                    :
+                    <></>
+                }
               </div>
 
               {/* Article Content */}
@@ -606,16 +633,16 @@ const NewsList = () => {
                   )}
                 </small>
               </div>
-              
+
               <h3 className="article-title mb-3">
-                <Link 
-                  to={`/news/${article.id}`} 
+                <Link
+                  to={`/news/${article.id}`}
                   className="text-decoration-none text-dark"
                 >
                   {truncateText(article.headline, 100)}
                 </Link>
               </h3>
-              
+
               {/* News Summary */}
               {article.news && (
                 <div className="news-summary-preview mb-3">
@@ -627,11 +654,11 @@ const NewsList = () => {
                   </p>
                 </div>
               )}
-              
+
               <p className="article-excerpt text-muted mb-3">
                 {truncateText(article.details, 50)}
               </p>
-              
+
               {/* Tags */}
               <div className="article-tags mb-3">
                 <div className="editable-tags">
@@ -645,7 +672,7 @@ const NewsList = () => {
                       {tag}
                     </Link>
                   ))}
-                  <i className="fas fa-edit text-muted ms-1" style={{fontSize: '0.75rem'}}></i>
+                  <i className="fas fa-edit text-muted ms-1" style={{ fontSize: '0.75rem' }}></i>
                 </div>
               </div>
 
@@ -664,7 +691,7 @@ const NewsList = () => {
                   </div>
                 </div>
               )}
-              
+
               {/* Prelims Point Preview */}
               <div className="prelims-preview mb-3">
                 <small className="text-warning fw-semibold d-block mb-1">
@@ -674,7 +701,7 @@ const NewsList = () => {
                   {truncateText(article.prelims_point, 50)}
                 </p>
               </div>
-              
+
               {/* Article Footer */}
               <div className="article-footer d-flex justify-content-between align-items-center">
                 <small className="text-muted">
@@ -704,7 +731,7 @@ const NewsList = () => {
             {searchQuery ? (
               <>
                 Try a different search term or{' '}
-                <button 
+                <button
                   className="btn btn-link p-0"
                   onClick={clearAllFilters}
                 >
@@ -729,7 +756,7 @@ const NewsList = () => {
           <div className="d-flex justify-content-between align-items-center mb-3">
             <div className="pagination-info">
               <small className="text-muted">
-                Showing page {currentPage} of {totalPages} 
+                Showing page {currentPage} of {totalPages}
                 ({totalArticles} total articles)
               </small>
             </div>
@@ -738,7 +765,7 @@ const NewsList = () => {
                 <ul className="pagination pagination-sm mb-0">
                   {/* First Page */}
                   <li className={`page-item ${!hasPrevious ? 'disabled' : ''}`}>
-                    <button 
+                    <button
                       className="page-link"
                       onClick={goToFirstPage}
                       disabled={!hasPrevious}
@@ -747,10 +774,10 @@ const NewsList = () => {
                       <i className="fas fa-angle-double-left"></i>
                     </button>
                   </li>
-                  
+
                   {/* Previous Page */}
                   <li className={`page-item ${!hasPrevious ? 'disabled' : ''}`}>
-                    <button 
+                    <button
                       className="page-link"
                       onClick={goToPreviousPage}
                       disabled={!hasPrevious}
@@ -759,14 +786,14 @@ const NewsList = () => {
                       <i className="fas fa-angle-left"></i>
                     </button>
                   </li>
-                  
+
                   {/* Page Numbers */}
                   {getPageNumbers().map((page, index) => (
                     <li key={index} className={`page-item ${page === currentPage ? 'active' : ''}`}>
                       {page === '...' ? (
                         <span className="page-link">...</span>
                       ) : (
-                        <button 
+                        <button
                           className="page-link"
                           onClick={() => handlePageChange(page)}
                         >
@@ -775,10 +802,10 @@ const NewsList = () => {
                       )}
                     </li>
                   ))}
-                  
+
                   {/* Next Page */}
                   <li className={`page-item ${!hasNext ? 'disabled' : ''}`}>
-                    <button 
+                    <button
                       className="page-link"
                       onClick={goToNextPage}
                       disabled={!hasNext}
@@ -787,10 +814,10 @@ const NewsList = () => {
                       <i className="fas fa-angle-right"></i>
                     </button>
                   </li>
-                  
+
                   {/* Last Page */}
                   <li className={`page-item ${!hasNext ? 'disabled' : ''}`}>
-                    <button 
+                    <button
                       className="page-link"
                       onClick={goToLastPage}
                       disabled={!hasNext}
@@ -803,17 +830,17 @@ const NewsList = () => {
               </nav>
             </div>
           </div>
-          
+
           {/* Quick Page Jump */}
           {totalPages > 10 && (
             <div className="quick-jump text-center">
               <div className="d-inline-flex align-items-center gap-2">
                 <small className="text-muted">Jump to page:</small>
-                <input 
-                  type="number" 
+                <input
+                  type="number"
                   className="form-control form-control-sm"
-                  style={{width: '80px'}}
-                  min="1" 
+                  style={{ width: '80px' }}
+                  min="1"
                   max={totalPages}
                   value={currentPage}
                   onChange={(e) => {

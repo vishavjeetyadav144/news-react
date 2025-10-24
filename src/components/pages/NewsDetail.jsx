@@ -464,9 +464,14 @@ const NewsDetail = () => {
                   <button className="btn btn-outline-success me-3" onClick={shareArticle}>
                     <i className="fas fa-share me-2"></i>Share
                   </button>
+                  {
+                    isAuthenticated && user.permissions.can_delete_articles ?
                   <button className="btn btn-outline-danger" onClick={deleteArticle}>
                     <i className="fas fa-trash me-2"></i>Delete Article
                   </button>
+                    :
+                    <></>
+                  }
                 </div>
                 :
                 <div className="article-actions mb-5">

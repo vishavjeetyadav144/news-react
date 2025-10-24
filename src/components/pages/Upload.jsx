@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { uploadAPI } from '../../services/api';
 import { parseUploadStatus } from '../../services/dataParser';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Upload = () => {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -11,6 +12,7 @@ const Upload = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
+  const { user, logout, isAuthenticated } = useAuth();
 
   // Fetch recent uploads and processing status
   useEffect(() => {
@@ -18,18 +20,18 @@ const Upload = () => {
       try {
         setLoading(true);
         setError(null);
-        
+
         // Fetch processing status from Django backend
         const response = await uploadAPI.getProcessingStatus();
-        
+
         // Parse the response
         const uploads = parseUploadStatus(response);
         setRecentUploads(uploads);
-        
+
       } catch (err) {
         console.error('Error fetching upload status:', err);
         setError(err.message);
-        
+
         // Fallback to mock data on error
         setRecentUploads([
           {
@@ -51,7 +53,7 @@ const Upload = () => {
     };
 
     fetchUploadStatus();
-    
+
     // Poll for status updates every 5 seconds if there are processing uploads
     const interval = setInterval(() => {
       if (recentUploads.some(upload => !upload.processed)) {
@@ -93,7 +95,7 @@ const Upload = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!selectedFile) {
       alert('Please select a PDF file to upload.');
       return;
@@ -106,11 +108,11 @@ const Upload = () => {
 
     setIsProcessing(true);
     setProgress(0);
-    
+
     try {
       // Upload PDF using Django backend
       await uploadAPI.uploadPDF(selectedFile);
-      
+
       // Show success message
       const notification = document.createElement('div');
       notification.className = 'alert alert-success alert-dismissible fade show position-fixed';
@@ -120,27 +122,27 @@ const Upload = () => {
         <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
       `;
       document.body.appendChild(notification);
-      
+
       setTimeout(() => {
         if (notification.parentNode) {
           notification.remove();
         }
       }, 5000);
-      
+
       // Reset form
       setSelectedFile(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
-      
+
       // Refresh upload status
       const response = await uploadAPI.getProcessingStatus();
       const uploads = parseUploadStatus(response);
       setRecentUploads(uploads);
-      
+
     } catch (err) {
       console.error('Error uploading PDF:', err);
-      
+
       // Show error message
       const notification = document.createElement('div');
       notification.className = 'alert alert-danger alert-dismissible fade show position-fixed';
@@ -150,13 +152,13 @@ const Upload = () => {
         <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
       `;
       document.body.appendChild(notification);
-      
+
       setTimeout(() => {
         if (notification.parentNode) {
           notification.remove();
         }
       }, 5000);
-      
+
     } finally {
       setIsProcessing(false);
       setProgress(0);
@@ -169,19 +171,19 @@ const Upload = () => {
 
   const formatDate = (dateString) => {
     if (!dateString) return '';
-    
+
     try {
       const date = new Date(dateString);
-      
+
       // Check if the date is valid
       if (isNaN(date.getTime())) {
         return dateString; // Return original string if date is invalid
       }
-      
-      return date.toLocaleDateString('en-US', { 
-        year: 'numeric', 
-        month: 'short', 
-        day: 'numeric' 
+
+      return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
       });
     } catch (error) {
       console.warn('Error formatting date:', dateString, error);
@@ -202,75 +204,81 @@ const Upload = () => {
       <div className="row justify-content-center">
         <div className="col-lg-8 col-xl-6">
           {/* Upload Form Card */}
-          <div className="upload-card">
-            <form onSubmit={handleSubmit}>
-              {/* Upload Area */}
-              <div 
-                className={`upload-area ${isDragOver ? 'dragover' : ''}`}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <div className="upload-icon mb-4">
-                  <i className={`fas ${selectedFile ? 'fa-file-pdf text-success' : 'fa-cloud-upload-alt text-primary'} fa-4x`}></i>
-                </div>
-                <h3 className="upload-title mb-3">
-                  {selectedFile ? selectedFile.name : 'Drop your PDF here'}
-                </h3>
-                <p className={`upload-subtitle mb-4 ${selectedFile ? 'text-success' : 'text-muted'}`}>
-                  {selectedFile 
-                    ? `${formatFileSize(selectedFile.size)} - Ready to process`
-                    : 'or click to browse files'
-                  }
-                </p>
-                
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".pdf"
-                  onChange={handleFileInputChange}
-                  style={{ display: 'none' }}
-                />
-                
-                <div className="upload-info mt-4">
-                  <div className="row text-center">
-                    <div className="col-4">
-                      <i className="fas fa-file-pdf text-danger mb-2"></i>
-                      <small className="d-block text-muted">PDF Only</small>
+          {
+            isAuthenticated && user.permissions.can_upload_pdfs ?
+
+              <div className="upload-card">
+                <form onSubmit={handleSubmit}>
+                  {/* Upload Area */}
+                  <div
+                    className={`upload-area ${isDragOver ? 'dragover' : ''}`}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <div className="upload-icon mb-4">
+                      <i className={`fas ${selectedFile ? 'fa-file-pdf text-success' : 'fa-cloud-upload-alt text-primary'} fa-4x`}></i>
                     </div>
-                    <div className="col-4">
-                      <i className="fas fa-weight-hanging text-warning mb-2"></i>
-                      <small className="d-block text-muted">Max 50MB</small>
-                    </div>
-                    <div className="col-4">
-                      <i className="fas fa-robot text-success mb-2"></i>
-                      <small className="d-block text-muted">AI Powered</small>
+                    <h3 className="upload-title mb-3">
+                      {selectedFile ? selectedFile.name : 'Drop your PDF here'}
+                    </h3>
+                    <p className={`upload-subtitle mb-4 ${selectedFile ? 'text-success' : 'text-muted'}`}>
+                      {selectedFile
+                        ? `${formatFileSize(selectedFile.size)} - Ready to process`
+                        : 'or click to browse files'
+                      }
+                    </p>
+
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".pdf"
+                      onChange={handleFileInputChange}
+                      style={{ display: 'none' }}
+                    />
+
+                    <div className="upload-info mt-4">
+                      <div className="row text-center">
+                        <div className="col-4">
+                          <i className="fas fa-file-pdf text-danger mb-2"></i>
+                          <small className="d-block text-muted">PDF Only</small>
+                        </div>
+                        <div className="col-4">
+                          <i className="fas fa-weight-hanging text-warning mb-2"></i>
+                          <small className="d-block text-muted">Max 50MB</small>
+                        </div>
+                        <div className="col-4">
+                          <i className="fas fa-robot text-success mb-2"></i>
+                          <small className="d-block text-muted">AI Powered</small>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
+
+                  {/* Upload Button */}
+                  <div className="text-center mt-4">
+                    <button
+                      type="submit"
+                      className="btn btn-primary btn-lg px-5 py-3"
+                      disabled={isProcessing || !selectedFile}
+                    >
+                      {isProcessing ? (
+                        <>
+                          <i className="fas fa-spinner fa-spin me-2"></i>Processing...
+                        </>
+                      ) : (
+                        <>
+                          <i className="fas fa-magic me-2"></i>Process PDF
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
               </div>
-              
-              {/* Upload Button */}
-              <div className="text-center mt-4">
-                <button 
-                  type="submit" 
-                  className="btn btn-primary btn-lg px-5 py-3"
-                  disabled={isProcessing || !selectedFile}
-                >
-                  {isProcessing ? (
-                    <>
-                      <i className="fas fa-spinner fa-spin me-2"></i>Processing...
-                    </>
-                  ) : (
-                    <>
-                      <i className="fas fa-magic me-2"></i>Process PDF
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
+              :
+              <></>
+          }
 
           {/* Processing Status */}
           {isProcessing && (
@@ -284,9 +292,9 @@ const Upload = () => {
                   </div>
                 </div>
                 <div className="progress mb-2" style={{ height: '8px' }}>
-                  <div 
-                    className="progress-bar progress-bar-striped progress-bar-animated" 
-                    role="progressbar" 
+                  <div
+                    className="progress-bar progress-bar-striped progress-bar-animated"
+                    role="progressbar"
                     style={{ width: `${progress}%` }}
                   ></div>
                 </div>
