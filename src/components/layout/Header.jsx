@@ -96,7 +96,7 @@ const Header = () => {
                     <i className="fas fa-newspaper me-2"></i>News
                   </Link>
                 </li>
-                {/* <li className="nav-item">
+                <li className="nav-item">
                   <Link
                     className={`nav-link fw-medium px-3 py-2 rounded-pill ${isActive('/context') ? 'active bg-light text-success' : 'text-dark'}`}
                     to="/context"
@@ -104,7 +104,7 @@ const Header = () => {
                     <i className="fas fa-lightbulb me-2"></i>Context
                   </Link>
                 </li>
-                <li className="nav-item">
+                {/* <li className="nav-item">
                   <Link
                     className={`nav-link fw-medium px-3 py-2 rounded-pill ${isActive('/perspective') ? 'active bg-light text-success' : 'text-dark'}`}
                     to="/perspective"

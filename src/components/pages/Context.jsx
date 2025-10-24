@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { contextAPI } from '../../services/api';
 import { parseContextData } from '../../services/dataParser';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Context = () => {
   const [topic, setTopic] = useState('');
@@ -9,6 +10,7 @@ const Context = () => {
   const [existingContexts, setExistingContexts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { user, logout, isAuthenticated } = useAuth();
 
   useEffect(() => {
     const fetchContextData = async () => {
@@ -18,7 +20,7 @@ const Context = () => {
 
         // Fetch context data from Django backend
         const response = await contextAPI.getContexts();
-        
+
         // Parse the HTML response to extract data
         const data = parseContextData(response);
         setExistingContexts(data.contexts || []);
@@ -148,45 +150,51 @@ const Context = () => {
           <span>Historical Background</span>
         </div>
         {/* <button className="follow-btn">Follow</button> */}
-        <div className="input-section">
-          <form onSubmit={handleSubmit}>
-            <div className="input-container">
-              <input
-                type="text"
-                className="topic-input"
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                placeholder="e.g., Digital India Initiative, Climate Change Policy, GST Implementation..."
-                required
-                disabled={isGenerating}
-              />
-              <button
-                type="submit"
-                className="generate-btn"
-                disabled={isGenerating || !topic.trim()}
-              >
-                {isGenerating && (
-                  <span className="loading-spinner"></span>
-                )}
-                {isGenerating ? 'Generating...' : 'Generate Analysis'}
-              </button>
-            </div>
+        {
+          isAuthenticated && user.permissions.can_generate_ai_content ?
 
-            <div className="example-topics">
-              {exampleTopics.map((exampleTopic, index) => (
-                <button
-                  key={index}
-                  type="button"
-                  className="example-topic"
-                  onClick={() => setExampleTopic(exampleTopic)}
-                  disabled={isGenerating}
-                >
-                  {exampleTopic}
-                </button>
-              ))}
+            <div className="input-section">
+              <form onSubmit={handleSubmit}>
+                <div className="input-container">
+                  <input
+                    type="text"
+                    className="topic-input"
+                    value={topic}
+                    onChange={(e) => setTopic(e.target.value)}
+                    placeholder="e.g., Digital India Initiative, Climate Change Policy, GST Implementation..."
+                    required
+                    disabled={isGenerating}
+                  />
+                  <button
+                    type="submit"
+                    className="generate-btn"
+                    disabled={isGenerating || !topic.trim()}
+                  >
+                    {isGenerating && (
+                      <span className="loading-spinner"></span>
+                    )}
+                    {isGenerating ? 'Generating...' : 'Generate Analysis'}
+                  </button>
+                </div>
+
+                <div className="example-topics">
+                  {exampleTopics.map((exampleTopic, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      className="example-topic"
+                      onClick={() => setExampleTopic(exampleTopic)}
+                      disabled={isGenerating}
+                    >
+                      {exampleTopic}
+                    </button>
+                  ))}
+                </div>
+              </form>
             </div>
-          </form>
-        </div>
+            :
+            <></>
+        }
       </div>
 
       <div className="main-container">
